@@ -1,3 +1,22 @@
+document.addEventListener('DOMContentLoaded', () => {
+    const swiper = new Swiper('.swiper', {
+       slidesPerView: 3,     
+        spaceBetween: 12,  
+        loop: true,
+        speed: 600,
+
+        navigation: {
+            nextEl: '.swiper-button-next',
+            prevEl: '.swiper-button-prev',
+        },
+
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true,
+        },
+    });
+});
+
 const parallaxLayers = document.querySelectorAll('.parallax-layer');
 
 window.addEventListener('scroll', () => {
@@ -33,3 +52,80 @@ window.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector(".add-car");
+    const inputs = form.querySelectorAll("input[type='text']");
+    const imageInput = document.getElementById("imageInput");
+    const priceInput = document.getElementById("price");
+
+    function showError(input) {
+        input.classList.add("error-input");
+    }
+
+    function clearError(input) {
+        input.classList.remove("error-input");
+    }
+
+    form.addEventListener("submit", function (e) {
+        let valid = true;
+
+        inputs.forEach(input => {
+            if (input.value.trim() === "") {
+                showError(input);
+                valid = false;
+            } else {
+                clearError(input);
+            }
+        });
+
+        if (!imageInput.files.length) {
+            imageInput.classList.add("error-input");
+            valid = false;
+        }
+
+        if (!valid) e.preventDefault();
+    });
+
+    inputs.forEach(input => {
+        input.addEventListener("input", () => clearError(input));
+    });
+
+    imageInput.addEventListener("change", () => {
+        imageInput.classList.remove("error-input");
+    });
+
+    function formatNumber(value) {
+        return value.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    priceInput.addEventListener("input", function () {
+        let raw = this.value.replace(/[^0-9]/g, "");
+        if (raw === "") {
+            this.value = "";
+            return;
+        }
+        this.value = "₱ " + formatNumber(raw);
+    });
+
+
+    const carTypeSelect = document.getElementById('car_type');
+    const carTypeInput = document.getElementById('car_type_other');
+
+    carTypeSelect.addEventListener('change', function() {
+        if (this.value === 'other') {
+            carTypeSelect.style.display = 'none'; 
+            carTypeInput.style.display = 'block'; 
+            carTypeInput.required = true;
+        } else {
+            carTypeSelect.style.display = 'block';
+            carTypeInput.style.display = 'none';
+            carTypeInput.required = false;
+        }
+    });
+
+});
+
+

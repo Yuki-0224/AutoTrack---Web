@@ -41,58 +41,46 @@
         <label class="box-label">Manage Rental</label>
        
         <div class="div-panel">
-            <div class="pick-container">
-                <button onclick="" class="pick-btn">Customer</button>
-                <button onclick="" class="pick-btn">Car</button>
-                <button onclick="" class="pick-btn">last</button>
-            </div>
-
-            <div id="customer_div">
-                <button><a href="">Create Account</a></button>
-                <form action="">
-                    <input type="text">
-                    <button><a href=""></a></button>
+            <div class="search-container">
+                <form method="get">
+                    <input type="text" placeholder="Search....." class="search-input" name="search" value="<?= esc($search) ?>">
+                    <button class="search-btn" >Search</button>
                 </form>
-                <div>
-                    <div>
-                        <label for="customer_name">Name</label>
-                        <input type="text">
-                    </div>
-                    <div>
-                        <label for="customer_phone">Phone Number</label>
-                        <input type="text">
-                    </div>
-                    <div>
-                        <label for="customer_address">Address</label>
-                        <input type="text">
-                    </div>
-                    <div>
-                        <label for="customer_driver_license">Driver License</label>
-                        <input type="text">
-                    </div>
-                </div>
+                <!-- <select name="type" id=""  class="search-select">
+                        <option value="">-- Select Car Type --</option>
+                        <?php foreach ($results as $car): ?>
+                            <option value="<?= htmlspecialchars(esc($car['car_name'])) ?>"> </option>
+                        <?php endforeach; ?>
+                </select> -->
+                <button class="add_btn" onclick="window.location.href='<?= url('add_new_rental') ?>'">Add New Rental</button>
             </div>
 
-            <div id="car_div">
-                
-
-            </div>
+            <table class="table-container">
+                <tr class="car-table-row">
+                    <th class="car-table-header">Driver License</th>
+                    <th class="car-table-header">Customer Name</th>
+                    <th class="car-table-header">Car Name</th>
+                    <th class="car-table-header">Date supposed to return</th>
+                    <th class="car-table-header">blanck</th>
+                    <th class="car-table-header">Action</th>
+                </tr>
+                <tr>
+                    <td class="car-table-cell"></td>
+                    <td class="car-table-cell"></td>
+                    <td class="car-table-cell"></td>
+                    <td class="car-table-cell"></td>
+                    <td class="car-table-cell"></td>
+                    <td class="car-table-cell">
+                        <button>View    </button>
+                        <button>Return</button>
+                    </td>
+                </tr>
+            </table>
         </div>
-        
-
-        
-
-        
-        
     </div>
 
-
-
-
-   
     <script src="<?= base_url() ?>public/script/script.js"></script>
-
-
+    
     <script>
         function openReservation() {
             window.location.href = "<?= url('Reservation') ?>";
