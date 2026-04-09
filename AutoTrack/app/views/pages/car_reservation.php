@@ -101,7 +101,7 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-semibold text-slate-900 mb-2">Full Name *</label>
-                                        <input type="text" name="full_name" placeholder="John Doe" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                                        <input type="text" name="full_name" placeholder="John Doe" value="<?= esc(($_SESSION['user']['first_name'] ?? '') . ' ' . ($_SESSION['user']['last_name'] ?? '')) ?>" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-slate-900 mb-2">Email Address *</label>
@@ -109,11 +109,11 @@
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-slate-900 mb-2">Phone Number *</label>
-                                        <input type="tel" name="phone" placeholder="123-456-7890" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                                        <input type="tel" name="phone" placeholder="123-456-7890" value="<?= esc($_POST['phone'] ?? '') ?>" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-semibold text-slate-900 mb-2">Driver's License *</label>
-                                        <input type="text" name="driver_license" placeholder="DL12345678" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required>
+                                        <input type="text" name="driver_license" placeholder="DL12345678" value="<?= esc($_POST['driver_license'] ?? '') ?>" class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400" required>
                                     </div>
                                 </div>
                             </div>
