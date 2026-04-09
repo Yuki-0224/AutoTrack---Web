@@ -109,6 +109,38 @@ $router->post('register', function () {
 
 $router->get('dashboard', 'app/views/pages/dashboard')->middleware('auth');
 
+$router->get('Reservation', 'app/views/pages/reservation')->middleware('auth');
+$router->get('car-info', 'app/views/pages/car_info')->middleware('auth');
+$router->get('car-reservation', 'app/views/pages/car_reservation')->middleware('auth');
+$router->post('save-reservation', function () {
+    $customer_id = $_SESSION['user']['id'];
+    $car_id = $_POST['car_id'] ?? 0;
+    $pickup_date = $_POST['pickup_date'] ?? '';
+    $return_date = $_POST['return_date'] ?? '';
+    $pickup_location = $_POST['pickup_location'] ?? '';
+    $dropoff_location = $_POST['dropoff_location'] ?? '';
+
+    if ($car_id && $pickup_date && $return_date) {
+        db()->table('reservations')->insert([
+            'customer_id' => $customer_id,
+            'car_id' => $car_id,
+            'pickup_date' => $pickup_date,
+            'return_date' => $return_date,
+            'pickup_location' => $pickup_location,
+            'dropoff_location' => $dropoff_location,
+            'reservation_status' => 'Pending'
+        ]);
+        set_flash('success', 'Reservation created successfully!');
+        header('Location: ' . url('payment') . '?car_id=' . $car_id);
+        exit;
+    }
+    set_flash('error', 'Failed to create reservation.');
+    header('Location: ' . url('dashboard'));
+    exit;
+})->middleware('auth');
+
+$router->get('payment', 'app/views/pages/payment')->middleware('auth');
+
 $router->get('logout', function () {
     if (session_status() === PHP_SESSION_NONE) {
         session_start();
