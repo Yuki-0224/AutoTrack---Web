@@ -17,7 +17,7 @@ $router->post('login', function () {
     }
 
     db()->raw("CREATE TABLE IF NOT EXISTS users (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
@@ -25,7 +25,7 @@ $router->post('login', function () {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
     $user = db()->table('users')
-        ->select('id,name,email,password')
+        ->select('user_id,name,email,password')
         ->where('email', '=', $email)
         ->get();
 
@@ -39,7 +39,7 @@ $router->post('login', function () {
     $customer = null;
     try {
         $customer = db()->table('customers')
-            ->where('user_id', '=', $user['id'])
+            ->where('user_id', '=', $user['user_id'])
             ->get();
     } catch (Exception $e) {
         // Customer record might not exist
@@ -47,10 +47,10 @@ $router->post('login', function () {
 
     session_regenerate_id(true);
     $_SESSION['user'] = [
-        'id' => $user['id'],
+        'id' => $user['user_id'],
         'name' => $user['name'],
         'email' => $user['email'],
-        'customer_id' => $customer['customer_id'] ?? null,
+        'customer_id' => ($customer && is_array($customer)) ? $customer['customer_id'] : null,
     ];
 
     header('Location: ' . url('dashboard'));
@@ -88,7 +88,7 @@ $router->post('register', function () {
     }
 
     db()->raw("CREATE TABLE IF NOT EXISTS users (
-        id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        user_id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
@@ -105,11 +105,11 @@ $router->post('register', function () {
         address TEXT NOT NULL,
         driver_license VARCHAR(50) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;");
 
     $existing = db()->table('users')
-        ->select('id')
+        ->select('user_id')
         ->where('email', '=', $email)
         ->get();
 
@@ -162,9 +162,11 @@ $router->post('save-reservation', function () {
     $return_date = $_POST['return_date'] ?? '';
     $pickup_location = $_POST['pickup_location'] ?? '';
     $dropoff_location = $_POST['dropoff_location'] ?? '';
+    $total_amount = $_POST['total_amount'] ?? 0;
 
     if ($car_id && $pickup_date && $return_date) {
-        db()->table('reservations')->insert([
+        // Create reservation
+        $resId = db()->table('reservations')->insert([
             'customer_id' => $customer_id,
             'car_id' => $car_id,
             'pickup_date' => $pickup_date,
@@ -173,8 +175,12 @@ $router->post('save-reservation', function () {
             'dropoff_location' => $dropoff_location,
             'reservation_status' => 'Pending'
         ]);
+
+        // Update car status to "Not Available"
+        db()->table('cars')->where('car_id', '=', $car_id)->update(['status' => 'Not Available']);
+
         set_flash('success', 'Reservation created successfully!');
-        header('Location: ' . url('payment') . '?car_id=' . $car_id);
+        header('Location: ' . url('payment') . '?car_id=' . $car_id . '&total=' . $total_amount . '&reservation_id=' . $resId);
         exit;
     }
     set_flash('error', 'Failed to create reservation.');
@@ -182,7 +188,148 @@ $router->post('save-reservation', function () {
     exit;
 })->middleware('auth');
 
+$router->post('cancel-reservation', function () {
+    $reservation_id = $_POST['reservation_id'] ?? 0;
+    $customer_id = $_SESSION['user']['customer_id'] ?? $_SESSION['user']['id'];
+
+    if ($reservation_id) {
+        // Get reservation to find car_id
+        $reservation = db()->table('reservations')
+            ->where('reservation_id', '=', $reservation_id)
+            ->where('customer_id', '=', $customer_id)
+            ->get();
+
+        if ($reservation) {
+            // Delete all related payments
+            db()->raw("DELETE FROM payments WHERE reservation_id = ? OR rental_id IN (SELECT rental_id FROM rentals WHERE reservation_id = ?)", [$reservation_id, $reservation_id]);
+
+            // Delete all related rentals
+            db()->table('rentals')->where('reservation_id', '=', $reservation_id)->delete();
+
+            // Delete reservation
+            db()->table('reservations')->where('reservation_id', '=', $reservation_id)->delete();
+
+            // Set car status back to "Available"
+            db()->table('cars')->where('car_id', '=', $reservation['car_id'])->update(['status' => 'Available']);
+
+            http_response_code(200);
+            echo json_encode(['success' => true]);
+        }
+    }
+    http_response_code(400);
+    echo json_encode(['success' => false]);
+})->middleware('auth');
+
 $router->get('payment', 'app/views/pages/payment')->middleware('auth');
+
+$router->post('process-payment', function () {
+    $reservation_id = $_POST['reservation_id'] ?? 0;
+    $car_id = $_POST['car_id'] ?? 0;
+    $payment_method = $_POST['payment_method'] ?? '';
+    $payment_amount = (float)($_POST['payment_amount'] ?? 0);
+    $total_amount = (float)($_POST['total_amount'] ?? 0);
+
+    if (!$reservation_id || !$car_id || !$payment_method || $payment_amount <= 0) {
+        set_flash('error', 'Invalid payment information.');
+        header('Location: ' . url('dashboard'));
+        exit;
+    }
+
+    try {
+        // Get reservation details
+        $reservation = db()->table('reservations')
+            ->where('reservation_id', '=', $reservation_id)
+            ->get();
+
+        if (!$reservation) {
+            set_flash('error', 'Reservation not found.');
+            header('Location: ' . url('dashboard'));
+            exit;
+        }
+
+        // Check if rental already exists for this reservation
+        $existingRental = db()->table('rentals')
+            ->where('reservation_id', '=', $reservation_id)
+            ->get();
+
+        $rentalId = null;
+        
+        if ($existingRental) {
+            // Rental exists, use it
+            $rentalId = $existingRental['rental_id'];
+        } else {
+            // Create new rental record
+            $rentalId = db()->table('rentals')->insert([
+                'customer_id' => $reservation['customer_id'],
+                'car_id' => $car_id,
+                'reservation_id' => $reservation_id,
+                'rental_start' => $reservation['pickup_date'],
+                'rental_end' => $reservation['return_date'],
+                'rental_status' => 'Pending'
+            ]);
+        }
+
+        // Check if payment already exists for this rental
+        $existingPayment = db()->table('payments')
+            ->where('rental_id', '=', $rentalId)
+            ->get();
+
+        if ($existingPayment) {
+            // Update existing payment - add the new amount to the existing amount
+            $newAmount = floatval($existingPayment['amount']) + $payment_amount;
+            $newPaidAmount = floatval($existingPayment['paid_amount']) + $payment_amount;
+            
+            db()->table('payments')
+                ->where('payment_id', '=', $existingPayment['payment_id'])
+                ->update([
+                    'amount' => $newAmount,
+                    'paid_amount' => $newPaidAmount,
+                    'payment_method' => $payment_method,
+                    'payment_status' => ($newAmount >= $total_amount) ? 'Fully Paid' : 'Partial Payment',
+                    'payment_date' => date('Y-m-d')
+                ]);
+        } else {
+            // Create new payment record
+            db()->table('payments')->insert([
+                'rental_id' => $rentalId,
+                'amount' => $payment_amount,
+                'paid_amount' => $payment_amount,
+                'payment_date' => date('Y-m-d'),
+                'payment_method' => $payment_method,
+                'payment_status' => ($payment_amount >= $total_amount) ? 'Fully Paid' : 'Partial Payment',
+                'reservation_id' => $reservation_id
+            ]);
+        }
+
+        // Get total paid amount to check reservation status
+        $totalPaid = db()->raw("SELECT SUM(COALESCE(paid_amount, 0)) as total FROM payments WHERE rental_id = ?", [$rentalId]);
+        $totalPaidRow = $totalPaid->fetch(PDO::FETCH_ASSOC);
+        $totalPaidAmount = floatval($totalPaidRow['total'] ?? 0);
+        $isFullPayment = ($totalPaidAmount >= $total_amount);
+
+        // Update reservation status
+        db()->table('reservations')
+            ->where('reservation_id', '=', $reservation_id)
+            ->update([
+                'reservation_status' => $isFullPayment ? 'Confirmed' : 'Pending'
+            ]);
+
+        // Update rental status
+        if ($isFullPayment) {
+            db()->table('rentals')
+                ->where('rental_id', '=', $rentalId)
+                ->update(['rental_status' => 'Active']);
+        }
+
+        set_flash('success', 'Payment processed successfully! ' . ($isFullPayment ? 'Full payment received.' : 'Down payment received. Balance due: ₱' . number_format($total_amount - $totalPaidAmount, 2)));
+        header('Location: ' . url('dashboard'));
+        exit;
+    } catch (Exception $e) {
+        set_flash('error', 'Payment processing failed: ' . $e->getMessage());
+        header('Location: ' . url('dashboard'));
+        exit;
+    }
+})->middleware('auth');
 
 $router->get('logout', function () {
     if (session_status() === PHP_SESSION_NONE) {
