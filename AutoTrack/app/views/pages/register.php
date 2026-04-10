@@ -35,24 +35,61 @@
 
                         <form action="<?= url('register') ?>" method="post" class="form-stack">
                             <?= csrf_field() ?>
-                            <div class="space-y-2">
-                            <label for="name" class="text-sm font-medium text-slate-700">Full Name</label>
-                                <input id="name" name="name" type="text" required class="input-field" placeholder="Jane Doe" />
-                            </div>
 
-                            <div class="space-y-2">
-                            <label for="email" class="text-sm font-medium text-slate-700">Email address</label>
-                                <input id="email" name="email" type="email" required class="input-field" placeholder="name@example.com" />
-                            </div>
+                            <!-- Account Information -->
+                            <div class="mb-6 pb-6 border-b border-slate-200">
+                                <h3 class="text-sm font-semibold text-slate-900 mb-4">Account Information</h3>
 
-                            <div class="form-grid">
                                 <div class="space-y-2">
-                                    <label for="password" class="text-sm font-medium text-slate-700">Password</label>
-                                    <input id="password" name="password" type="password" required class="input-field" placeholder="********" />
+                                    <label for="name" class="text-sm font-medium text-slate-700">Full Name</label>
+                                    <input id="name" name="name" type="text" required class="input-field" placeholder="Jane Doe" />
                                 </div>
-                                <div class="space-y-2">
-                                    <label for="password_confirmation" class="text-sm font-medium text-slate-700">Confirm Password</label>
-                                    <input id="password_confirmation" name="password_confirmation" type="password" required class="input-field" placeholder="********" />
+
+                                <div class="space-y-2 mt-3">
+                                    <label for="email" class="text-sm font-medium text-slate-700">Email address</label>
+                                    <input id="email" name="email" type="email" required class="input-field" placeholder="name@example.com" />
+                                </div>
+
+                                <div class="form-grid mt-3">
+                                    <div class="space-y-2">
+                                        <label for="password" class="text-sm font-medium text-slate-700">Password</label>
+                                        <input id="password" name="password" type="password" required class="input-field" placeholder="********" />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="password_confirmation" class="text-sm font-medium text-slate-700">Confirm Password</label>
+                                        <input id="password_confirmation" name="password_confirmation" type="password" required class="input-field" placeholder="********" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Information -->
+                            <div class="mb-6">
+                                <h3 class="text-sm font-semibold text-slate-900 mb-4">Customer Details</h3>
+
+                                <div class="form-grid">
+                                    <div class="space-y-2">
+                                        <label for="first_name" class="text-sm font-medium text-slate-700">First Name</label>
+                                        <input id="first_name" name="first_name" type="text" required class="input-field" placeholder="Jane" />
+                                    </div>
+                                    <div class="space-y-2">
+                                        <label for="last_name" class="text-sm font-medium text-slate-700">Last Name</label>
+                                        <input id="last_name" name="last_name" type="text" required class="input-field" placeholder="Doe" />
+                                    </div>
+                                </div>
+
+                                <div class="space-y-2 mt-3">
+                                    <label for="phone" class="text-sm font-medium text-slate-700">Phone Number</label>
+                                    <input id="phone" name="phone" type="tel" required class="input-field" placeholder="+1 (555) 123-4567" />
+                                </div>
+
+                                <div class="space-y-2 mt-3">
+                                    <label for="address" class="text-sm font-medium text-slate-700">Address</label>
+                                    <textarea id="address" name="address" required class="input-field" placeholder="123 Main Street, City, State 12345" rows="2"></textarea>
+                                </div>
+
+                                <div class="space-y-2 mt-3">
+                                    <label for="driver_license" class="text-sm font-medium text-slate-700">Driver's License Number</label>
+                                    <input id="driver_license" name="driver_license" type="text" required class="input-field" placeholder="DL1234567890" />
                                 </div>
                             </div>
 

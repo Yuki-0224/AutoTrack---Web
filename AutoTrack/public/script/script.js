@@ -110,7 +110,7 @@ document.addEventListener("DOMContentLoaded", function () {
         this.value = "₱ " + formatNumber(raw);
     });
 
-
+    // PRA SA CAR TYPE IF MAY IDADAGDAG SA DROWPDOWN
     const carTypeSelect = document.getElementById('car_type');
     const carTypeInput = document.getElementById('car_type_other');
 
@@ -123,6 +123,27 @@ document.addEventListener("DOMContentLoaded", function () {
             carTypeSelect.style.display = 'block';
             carTypeInput.style.display = 'none';
             carTypeInput.required = false;
+        }
+    });
+
+    // PARA SA IMAGE NY UPDATE CAR
+    const input = document.getElementById("imageInput");
+    const fileName = document.getElementById("fileName");
+    const preview = document.getElementById("previewImg");
+
+    input.addEventListener("change", function() {
+        const file = this.files[0];
+
+        if (file) {
+            fileName.textContent = file.name;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+        } else {
+            fileName.textContent = "No file chosen";
         }
     });
 

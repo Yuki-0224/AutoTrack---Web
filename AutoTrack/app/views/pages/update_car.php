@@ -28,60 +28,74 @@
     <div class="div-admin-dash">
         <label class="box-label">Update Car</label>
 
-        <form action="<?= url('edit_car/' . $row['car_id'])?>" method="post" enctype="multipart/form-data" class="div-panel">
+        <form action="<?= url('edit_car/' . esc($row['car_id']))?>" method="post" enctype="multipart/form-data" class="div-panel">
             <?= csrf_field() ?>
-            <div class="form-grid">
-                <div class="input-wrapper">
-                    <label for="description">Car Name</label>
-                    <input type="text" name="car_name" placeholder="Car Name" value="<?= esc($row['car_name'])?>" >
+            <div class="form-container">
+
+                <div class="image-section">
+                    <div class="image-preview" id="imagePreview">
+                        <img src="<?= url('uploads/' . esc($row['image'])) ?>" id="previewImg" alt="Car Image">
+                    </div>
+
+                    <div class="file-upload">
+                        <label for="imageInput" class="custom-file-btn">Choose Image</label>
+                        <span id="fileName">No file chosen</span>
+                        <input type="file" name="image" id="imageInput" hidden>
+                    </div>
+
+                    <div class="div-desc">
+                        <label>Description</label>
+                        <textarea name="description" class="desc"><?= esc($row['description'])?></textarea>
+                    </div>
                 </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="brand" placeholder="Car Brand" value="<?= esc($row['brand'])?>" >
-                </div>
+                <div class="right-section">
+                    <div class="form-grid">
+                        <div class="input-wrapper">
+                            <label>Car Name</label>
+                            <input type="text" name="car_name" value="<?= esc($row['car_name'])?>">
+                        </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="car_type_update" id="" placeholder="Enter car type" value="<?= esc($row['car_type'])?>" >
-                </div>
-                
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="model" placeholder="Car Model" value="<?= esc($row['model'])?>" >
-                </div>
+                        <div class="input-wrapper">
+                            <label>Brand</label>
+                            <input type="text" name="brand" value="<?= esc($row['brand'])?>">
+                        </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="year" placeholder="Year" value="<?= esc($row['year'])?>" >
-                </div>
+                        <div class="input-wrapper">
+                            <label>Model</label>
+                            <input type="text" name="model" value="<?= esc($row['model'])?>">
+                        </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="plate_number" placeholder="Plate Number" value="<?= esc($row['plate_number'])?>" >
-                </div>
+                        <div class="input-wrapper">
+                            <label>Year</label>
+                            <input type="text" name="year" value="<?= esc($row['year'])?>">
+                        </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="color" placeholder="Color" value="<?= esc($row['color'])?>" >
-                </div>
+                        <div class="input-wrapper">
+                            <label>Car Type</label>
+                            <input type="text" name="car_type_update" value="<?= esc($row['car_type'])?>">
+                        </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="price_per_day" id="price" placeholder="Price per Day (₱)" value="<?= esc($row['price_per_day'])?>" >
-                </div>
+                        <div class="input-wrapper">
+                            <label>Plate Number</label>
+                            <input type="text" name="plate_number" value="<?= esc($row['plate_number'])?>">
+                        </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <textarea name="description" id="description" placeholder="Enter car description" class="desc"> <?= esc($row['description'])?></textarea>
-                </div>
+                        <div class="input-wrapper">
+                            <label>Color</label>
+                            <input type="text" name="color" value="<?= esc($row['color'])?>">
+                        </div>
 
-                <div class="input-wrapper">
-                    <label for="description">Description</label>
-                    <input type="text" name="existing_image" value="<?= esc($row['image']) ?>">
+                        <div class="input-wrapper">
+                            <label>Price per Day</label>
+                            <input type="text" name="price_per_day" value="<?= esc($row['price_per_day'])?>">
+                        </div>
+                    </div>
+                    <div class="btn-wrapper">
+                        <button type="submit" class="uc-btn">Update</button>
+                    </div>
                 </div>
-            </div>                              
-            <button type="submit" class="ac-btn">Update Car</button>
+            </div>
         </form>
     </div>
 
