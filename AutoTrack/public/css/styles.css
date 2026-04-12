@@ -2507,8 +2507,8 @@ video {
 /* admin dashboard */
 .div-admin-dash{
   position: absolute;
-  width:  70.3rem;
-  height: 100%;
+  width:  69.2rem;
+  height:auto;
   background:transparent;
   margin: 0rem 0rem 0rem 15rem;
   padding: 1rem;
@@ -2543,6 +2543,8 @@ video {
   position: absolute;
   font-weight: 500;
   font-size: 1.5rem;
+
+
 }
 
 .box-tot{
@@ -2718,7 +2720,7 @@ video {
     border-radius: 4px;
 }
 
-#car_type_other {
+#car_type_others {
     display: none; 
 }
 
@@ -3013,4 +3015,307 @@ input.error-input::after {
 
 .pick-container{
   
+}
+
+
+/* add sa add rental page */
+.div_date_rent {  
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    grid-column: 1 / -1; /* full width inside form-grid */
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ccc;
+    z-index: 999;
+}
+
+.dropdown-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background: #eee;
+}
+
+
+
+/* for payment rental */
+
+
+.content-grid {
+display: grid;
+grid-template-columns: 1fr 2fr;
+gap: 2rem;
+margin-bottom: 2rem;
+margin-top: 3rem;
+}
+
+/* Booking Summary */
+.summary-card {
+background: white;
+border-radius: 12px;
+padding: 2rem;
+box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+height: fit-content;
+position: sticky;
+top: 20px;
+color: black;
+}
+
+.summary-title {
+font-size: 1.3rem;
+font-weight: 700;
+margin-bottom: 1.5rem;
+padding-bottom: 1rem;
+border-bottom: 2px solid var(--border-color);
+}
+
+.summary-item {
+margin-bottom: 1.2rem;
+}
+
+.summary-label {
+font-size: 0.9rem;
+color: var(--text-gray);
+font-weight: 600;
+margin-bottom: 0.3rem;
+}
+
+.summary-value {
+font-size: 1rem;
+font-weight: 700;
+color: var(--text-dark);
+}
+
+.summary-section {
+padding: 1.5rem 0;
+border-bottom: 1px solid var(--border-color);
+}
+
+.summary-section:last-child {
+border-bottom: none;
+}
+
+.summary-total {
+background: linear-gradient(135deg, rgba(255, 107, 53, 0.1) 0%, rgba(230, 90, 36, 0.05) 100%);
+border-radius: 8px;
+padding: 1.5rem;
+margin-top: 1.5rem;
+border: 2px solid rgba(255, 107, 53, 0.2);
+}
+
+.total-row {
+display: flex;
+justify-content: space-between;
+font-size: 1.3rem;
+font-weight: 700;
+}
+
+.total-amount {
+color: var(--primary);
+}
+
+/* Security Badge */
+.security-badge {
+background: rgba(39, 174, 96, 0.1);
+border: 1px solid rgba(39, 174, 96, 0.3);
+border-radius: 8px;
+padding: 1rem;
+display: flex;
+align-items: center;
+gap: 0.8rem;
+color: green;
+font-weight: 600;
+font-size: 0.95rem;
+margin-top: 1.5rem;
+}
+
+/* Form Section */
+.form-section {
+background: white;
+border-radius: 12px;
+padding: 2rem;
+box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+margin-bottom: 2rem;
+}
+
+.section-title {
+font-size: 1.3rem;
+font-weight: 700;
+margin-bottom: 1.5rem;
+color: #1a1a1a;
+padding-bottom: 1rem;
+border-bottom: 2px solid #e0e0e0;
+}
+
+/* Payment Methods */
+.payment-methods {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+gap: 1rem;
+margin-bottom: 1.5rem;
+}
+
+.payment-option {
+position: relative;
+}
+
+.payment-option input[type="radio"] {
+display: none;
+}
+
+.payment-label {
+display: block;
+padding: 1.2rem;
+border: 2px solid #e0e0e0;
+border-radius: 8px;
+cursor: pointer;
+text-align: center;
+font-weight: 300;
+transition: all 0.3s ease;
+}
+
+.payment-option input[type="radio"]:checked + .payment-label {
+border-color: #ff6b35;
+background: rgba(255, 107, 53, 0.05);
+color: #ff6b35;
+}
+
+.payment-label:hover {
+border-color: #ff6b35;
+}
+
+/* Form Input */
+.form-group {
+margin-bottom: 1.5rem;
+}
+
+.form-label {
+display: block;
+font-weight: 600;
+margin-bottom: 0.5rem;
+color:  #1a1a1a;
+font-size: 0.95rem;
+}
+
+.form-input {
+width: 100%;
+padding: 0.9rem;
+border: 1px solid #e0e0e0;
+border-radius: 8px;
+font-family: inherit;
+font-size: 0.95rem;
+transition: all 0.3s ease;
+color: black;
+}
+
+.form-input:focus {
+outline: none;
+border-color: #ff6b35;
+box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+}
+
+.form-row {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+gap: 1.5rem;
+}
+
+/* Checkbox */
+.checkbox-group {
+display: flex;
+align-items: flex-start;
+gap: 1rem;
+padding: 1.5rem;
+background: #f8f9fa;
+border-radius: 8px;
+margin-bottom: 1.5rem;
+}
+
+.checkbox-group input[type="checkbox"] {
+width: 20px;
+height: 20px;
+margin-top: 2px;
+cursor: pointer;
+accent-color: #ff6b35;
+flex-shrink: 0;
+}
+
+.checkbox-text {
+font-size: 0.95rem;
+line-height: 1.5;
+}
+
+.checkbox-text a {
+color: #ff6b35;
+text-decoration: none;
+font-weight: 600;
+}
+
+.checkbox-text a:hover {
+text-decoration: underline;
+}
+
+/* Action Buttons */
+.action-buttons {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+gap: 1.5rem;
+margin-bottom: 2rem;
+}
+
+.btn-primary, .btn-secondary {
+padding: 1rem 2rem;
+border: none;
+border-radius: 8px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.3s ease;
+font-size: 1rem;
+}
+
+.btn-primary {
+background: #ff6b35;
+color: white;
+}
+
+.btn-primary:hover {
+background:#e55a24;
+transform: translateY(-2px);
+box-shadow: 0 6px 20px rgba(255, 107, 53, 0.3);
+}
+
+.btn-primary:disabled {
+opacity: 0.6;
+cursor: not-allowed;
+}
+
+.btn-secondary {
+background: white;
+color: #ff6b35;
+border: 2px solid #ff6b35;
+}
+
+.btn-secondary:hover {
+background: rgba(255, 107, 53, 0.05);
+}
+
+footer {
+background: #1a1a1a;
+color: white;
+text-align: center;
+padding: 2rem;
+margin-top: auto;
 }

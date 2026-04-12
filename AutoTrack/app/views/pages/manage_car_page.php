@@ -21,9 +21,8 @@
             ->or_like('brand', '%' . $search . '%');
         });
     }
-
-    $results = $query->get_all();
-
+     $results = $query->get_all();
+    
     ?>
 
     <div class="div-sidenav">

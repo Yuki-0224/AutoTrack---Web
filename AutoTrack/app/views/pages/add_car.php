@@ -7,10 +7,10 @@
     <link href="<?= base_url() ?>public/css/styles.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 </head>
-<body class="hero-bg-auth auth-body ">
+<body class="auth-body">
 
     <?php
-      $rows = db()->table('cars')->select('car_type')->get_all();
+      $rows = db()->table('cars')->select('car_type')->group_by('car_type')->get_all();
     ?>
 
     <div class="div-sidenav">
@@ -51,7 +51,7 @@
                             <option value="other">Other</option>
                         </select>
 
-                        <input type="text" name="car_type_other" id="car_type_other" placeholder="Enter car type">
+                        <input type="text" name="car_type_other" id="car_type_others" placeholder="Enter car type">
                     </div>
                 </div>
 

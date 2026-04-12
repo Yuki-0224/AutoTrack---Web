@@ -501,3 +501,135 @@ $router->get('delete_car/{car_id}', function($car_id){
         }
 });
 
+
+$router->get('add_new_rental', 'app/views/pages/add_rental_page');
+$router->get('search_customer', function () {
+
+    $q = $_GET['q'] ?? '';
+
+    $results = db()->table('customers')
+        ->select('first_name, last_name, driver_license, address, email, phone')
+        ->like('last_name', "%$q%")
+        ->limit(10)
+        ->get_all();
+
+    header('Content-Type: application/json');
+    echo json_encode($results);
+});
+
+$router->get('search_car', function () {
+
+    $q = $_GET['q'] ?? '';
+
+    $results = db()->table('cars')
+        ->select('car_name, brand, model, year, car_type, plate_number, color, price_per_day, plate_number')
+        ->like('plate_number', "%$q%")
+        ->limit(10)
+        ->get_all();
+
+    header('Content-Type: application/json');
+    echo json_encode($results);
+});
+
+$router->post('save-rental', function () {
+
+    $customer_license = $_POST['driver_license'];
+    $car_plate_number = $_POST['plate_number'];
+    $rental_start = $_POST['date_rental_start'];
+    $rental_end = $_POST['date_rental_end'];
+    $car_condtition_out = $_POST['car_condition'];
+    $fuel_out = $_POST['fuel_level'];
+    $odometer_out = $_POST['odometer'];
+
+    $customer = db()->table('customers')
+        ->select('customer_id')
+        ->Like('driver_license', $customer_license)
+        ->get();
+
+    $car = db()->table('cars')
+        ->select('car_id')
+        ->Like('plate_number', $car_plate_number)
+        ->get();
+
+
+        
+    $customer_id = $customer['customer_id'] ?? null;
+    $car_id = $car['car_id'] ?? null;
+    
+
+    if ($customer && $car) {
+
+        $resId = db()->table('rentals')->insert([
+            'customer_id' => $customer_id,
+            'car_id' => $car_id,
+            'rental_start' => $rental_start,
+            'rental_end' => $rental_end,
+            'car_condition_out' => $car_condtition_out,
+            'fuel_level_out' => $fuel_out,
+            'odometer_out' => $odometer_out
+        ]);
+
+        db()->table('cars')
+            ->where('car_id', $car_id)
+            ->update(['status' => 'Not Available']);
+
+        header('Location: ' . url('payment_rental') . '?car_id=' . $car_id . '&ren=' . $resId);
+        exit;
+    }
+
+    set_flash('error', 'Failed to create reservation.');
+    header('Location: ' . url('add_new_rental'));
+    exit;
+
+})->middleware('auth');
+
+
+
+$router->get('payment_rental', 'app/views/pages/payment_rental_page');
+
+
+$router->post('process-payment-rent', function () {
+    //$reservation_id = $_POST['reservation_id'] ?? 0;
+    $rent_id = $_POST['rent_id'] ?? 0;
+    $car_id = $_POST['car_id'] ?? 0;
+    $payment_method = $_POST['payment_method'] ?? '';
+    $payment_amount = (float)($_POST['payment_amount'] ?? 0);
+    $total_amount = (float)($_POST['total_amount'] ?? 0);
+
+    if (!$car_id || !$payment_method || $payment_amount <= 0) {
+        set_flash('error', 'Invalid payment information.');
+        header('Location: ' . url('dashboard'));
+        exit;
+    }
+
+    try {
+        // Check if payment already exists for this rental
+        $rental_id = db()->table('rentals')
+            ->where('rental_id', '=', $rent_id)
+            ->get();
+
+        if ($rental_id) {
+
+            db()->table('rentals')
+                ->where('rental_id', '=', $rental_id['rental_id'])
+                ->update([
+                    'total_amount' => $total_amount
+            ]);
+            db()->table('payments')->insert([
+                'rental_id' => $rent_id,
+                'amount' => $total_amount,
+                'paid_amount' => $payment_amount,
+                'payment_date' => date('Y-m-d'),
+                'payment_method' => $payment_method,
+                'payment_status' => ($payment_amount >= $total_amount) ? 'Fully Paid' : 'Partial Payment'
+            ]);
+        } 
+        set_flash('success', 'Payment processed successfully! ' . ($isFullPayment ? 'Full payment received.' : 'Down payment received. Balance due: ₱' . number_format($total_amount - $totalPaidAmount, 2)));
+        header('Location: ' . url('manage_rental'));
+        exit;
+    } catch (Exception $e) {
+        set_flash('error', 'Payment processing failed: ' . $e->getMessage());
+        header('Location: ' . url('payment_rental'));
+        exit;
+    }
+})->middleware('auth');
