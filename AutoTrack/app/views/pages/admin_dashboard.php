@@ -12,7 +12,7 @@
         <nav class="sidenav">
             <a href="<?= url('admin_dashboard') ?>" class="nav-link nav-link-focus"> OverView </a>
             <a href="<?= url('manage_car') ?>" class="nav-link"> Manage Cars </a>
-            <a href="" class="nav-link"> Manage Reservation </a>
+            <a href="<?= url('manage_reservation') ?>" class="nav-link"> Manage Reservation </a>
             <a href="<?= url('manage_rental') ?>" class="nav-link"> Manage Rentals </a>
             <a href="#contact" class="nav-link"> Manage Payments </a>
             <a href="#contact" class="nav-link"> Manage Maintenance </a>

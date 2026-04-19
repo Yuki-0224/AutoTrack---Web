@@ -26,7 +26,7 @@ $router->post('login', function () {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;");
 
     $user = db()->table('users')
-        ->select('id,name,email,password')
+        ->select('user_id,name,email,password,role')
         ->where('email', '=', $email)
         ->get();
 
@@ -49,9 +49,10 @@ $router->post('login', function () {
 
     session_regenerate_id(true);
     $_SESSION['user'] = [
-        'id' => $user['id'],
+        'id' => $user['user_id'],
         'name' => $user['name'],
         'email' => $user['email'],
+        // 'customer_id' => $customer['customer_id'] ?? null
     ];
 
     if ($user['role'] === 'admin') {
@@ -173,10 +174,17 @@ $router->post('save-reservation', function () {
     $dropoff_location = $_POST['dropoff_location'] ?? '';
     $total_amount = $_POST['total_amount'] ?? 0;
 
-    if ($car_id && $pickup_date && $return_date) {
+    $license = $_POST['driver_license'];
+
+    $customer = db()->table('customers')
+        ->select('customer_id')
+        ->where('driver_license', $license)
+    ->get();
+
+    if ($car_id && $pickup_date && $return_date && $customer) {
         // Create reservation
         $resId = db()->table('reservations')->insert([
-            'customer_id' => $customer_id,
+            'customer_id' => $customer['customer_id'],
             'car_id' => $car_id,
             'pickup_date' => $pickup_date,
             'return_date' => $return_date,
@@ -447,7 +455,7 @@ $router->post('add_new_car', function(){
 
     session_regenerate_id(true);
     set_flash('success', 'Car inserted successfully.');
-    header('Location: ' . url('add_new_car'));
+    header('Location: ' . url('manage_car'));
     exit;
 });
 
@@ -533,6 +541,7 @@ $router->get('search_car', function () {
 
 $router->post('save-rental', function () {
 
+    $reservation_id = $_POST['reservation_id'] ;
     $customer_license = $_POST['driver_license'];
     $car_plate_number = $_POST['plate_number'];
     $rental_start = $_POST['date_rental_start'];
@@ -551,15 +560,23 @@ $router->post('save-rental', function () {
         ->Like('plate_number', $car_plate_number)
         ->get();
 
-
+    $reserve = db()->table('reservations')
+        ->select('reservation_id')
+        ->Like('reservation_id', $reservation_id)
+        ->get();
         
+
     $customer_id = $customer['customer_id'] ?? null;
     $car_id = $car['car_id'] ?? null;
+    $reserve_id = $reserve['reservation_id'] ?? null;
+
+
     
 
     if ($customer && $car) {
 
         $resId = db()->table('rentals')->insert([
+            'reservation_id' => $reserve_id,
             'customer_id' => $customer_id,
             'car_id' => $car_id,
             'rental_start' => $rental_start,
@@ -567,15 +584,17 @@ $router->post('save-rental', function () {
             'car_condition_out' => $car_condtition_out,
             'fuel_level_out' => $fuel_out,
             'odometer_out' => $odometer_out
+           
         ]);
 
         db()->table('cars')
             ->where('car_id', $car_id)
             ->update(['status' => 'Not Available']);
 
-        header('Location: ' . url('payment_rental') . '?car_id=' . $car_id . '&ren=' . $resId);
+        header('Location: ' . url('payment_rental') . '?car_id=' . $car_id . '&ren=' . $resId . '&reserve_id=' . $reservation_id);
         exit;
     }
+
 
     set_flash('error', 'Failed to create reservation.');
     header('Location: ' . url('add_new_rental'));
@@ -592,6 +611,7 @@ $router->post('process-payment-rent', function () {
     //$reservation_id = $_POST['reservation_id'] ?? 0;
     $rent_id = $_POST['rent_id'] ?? 0;
     $car_id = $_POST['car_id'] ?? 0;
+    $reserve_id = $_POST['reservation_id'] ?? 0;
     $payment_method = $_POST['payment_method'] ?? '';
     $payment_amount = (float)($_POST['payment_amount'] ?? 0);
     $total_amount = (float)($_POST['total_amount'] ?? 0);
@@ -602,14 +622,40 @@ $router->post('process-payment-rent', function () {
         exit;
     }
 
+    
+    $reservation_id = db()->table('reservations')
+        ->select('reservation_id')
+            ->where('reservation_id', '=', $reserve_id)
+            ->get();
+
     try {
         // Check if payment already exists for this rental
         $rental_id = db()->table('rentals')
             ->where('rental_id', '=', $rent_id)
             ->get();
 
-        if ($rental_id) {
-
+        if($rental_id && $reservation_id){
+            db()->table('rentals')
+                ->where('rental_id', '=', $rental_id['rental_id'])
+                ->update([
+                    'total_amount' => $total_amount
+            ]);
+            db()->table('reservations')
+                ->where('reservation_id', '=', $reservation_id['reservation_id'])
+                ->update([
+                    'reservation_status' => "completed"
+            ]);
+            db()->table('payments')
+                ->where('reservation_id', '=', $reservation_id['reservation_id'])
+                ->update([
+                    'payment_status' => ($payment_amount >= $total_amount) ? 'Fully Paid' : 'Partial Payment',
+                    'paid_amount' => $payment_amount,
+                    'payment_method' => $payment_method,
+                    'payment_date' => date('Y-m-d'),
+            ]);
+        }  
+        else if ($rental_id) {
+        
             db()->table('rentals')
                 ->where('rental_id', '=', $rental_id['rental_id'])
                 ->update([
@@ -623,13 +669,19 @@ $router->post('process-payment-rent', function () {
                 'payment_method' => $payment_method,
                 'payment_status' => ($payment_amount >= $total_amount) ? 'Fully Paid' : 'Partial Payment'
             ]);
-        } 
+        }
+        
         set_flash('success', 'Payment processed successfully! ' . ($isFullPayment ? 'Full payment received.' : 'Down payment received. Balance due: ₱' . number_format($total_amount - $totalPaidAmount, 2)));
         header('Location: ' . url('manage_rental'));
         exit;
     } catch (Exception $e) {
         set_flash('error', 'Payment processing failed: ' . $e->getMessage());
-        header('Location: ' . url('payment_rental'));
+        header('Location: ' . url('dashboard'));
         exit;
     }
 })->middleware('auth');
+
+
+$router->get('manage_reservation', 'app/views/pages/manage_reservation_page');
+
+$router->get('add_new_rental/{reservation_id}', 'app/views/pages/add_rental_page');

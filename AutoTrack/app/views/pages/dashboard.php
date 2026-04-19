@@ -618,6 +618,9 @@
                 <?php
                 $customerId = $_SESSION['user']['customer_id'] ?? null;
                 $reservations = [];
+                var_dump($customerId);
+                
+               
 
                 if ($customerId) {
                     try {
@@ -647,6 +650,7 @@
                 ?>
 
                 <?php if (!empty($reservations)): ?>
+                    
                 <div class="reservations-table">
                     <table>
                         <thead>

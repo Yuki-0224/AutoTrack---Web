@@ -14,6 +14,9 @@
             $carId = isset($_GET['car_id']) ? (int)$_GET['car_id'] : 0;
             $car = null;
 
+            $reserve_id = isset($_GET['reserve_id']) ? (int)$_GET['reserve_id'] : 0;
+            $reserve = null;    
+
             if ($carId > 0) {
                 try {
                     $car = db()->table('cars')->where('car_id', '=', $carId)->get();
@@ -22,18 +25,28 @@
                 }
             }
 
+            if ($reserve_id > 0) {
+                try {
+                    $reserve = db()->table('payments')->select('paid_amount')->where('reservation_id', '=', $reserve_id)->get();
+                } catch (Exception $e) {
+                    $reserve = null;
+                }
+            }
+
             if ($car):
                 $estimatedTotal = $_GET['total'] ?? ($car['price_per_day'] * 3 * 1.10);
 
-            $rentId = isset($_GET['ren']) ? (int)$_GET['ren'] : 0;
-            $rent = null;
+                $rentId = isset($_GET['ren']) ? (int)$_GET['ren'] : 0;
+                $rent = null;
 
-            if ($rentId > 0) {
-                try {
-                    $rent = db()->table('rentals')->where('rental_id', '=', $rentId)->get();
-                } catch (Exception $e) {
-                    $rent = null;
-                }
+                
+
+                if ($rentId > 0) {
+                    try {
+                        $rent = db()->table('rentals')->where('rental_id', '=', $rentId)->get();
+                    } catch (Exception $e) {
+                        $rent = null;
+                    }
             }
 
             if($car && $rent){
@@ -47,15 +60,13 @@
 
                 $with_tax = $sub_tot * 0.10;
 
-                $tot_amt = $sub_tot + $with_tax;
-                
-                
+                $advance_deposit =  $reserve['paid_amount'] ?? 0;
+
+                $tot_amt = ($sub_tot + $with_tax) - $advance_deposit;
+
+               
             }
 
-            
-
-            
-            
     ?>
 
     <div class="div-sidenav">
@@ -108,6 +119,10 @@
                     <div class="summary-item">
                         <div class="summary-label">Tax (10%)</div>
                         <div class="summary-value"><?= $with_tax?></div>
+                    </div>
+                    <div class="summary-item" id="advanceDepositBox">
+                            <div class="summary-label">Advance Deposit</div>
+                            <div class="summary-value" id="reserveId">₱<?= number_format($advance_deposit) ?></div>
                     </div>
                 </div>
 
@@ -188,12 +203,12 @@
                                 <label class="form-label">Payment Amount (₱) *</label>
                                 <input type="number" name="payment_amount" class="form-input" placeholder="0.00" value="<?= $tot_amt?>" step="0.01" required>
                             </div>
-                            <p class="form-label" style="color: #666; margin-top: 0.5rem;">💡 Enter the amount you want to pay now. Full payment:</p>
+                            <p class="form-label" style="color: #666; margin-top: 0.5rem;"> Full payment:</p>
                         </div>
 
                         <!-- Hidden fields -->
                         <input type="hidden" name="car_id" value="<?= $carId ?>">
-                        <input type="hidden" name="reservation_id" value="">
+                        <input type="hidden" name="reservation_id" value="<?= $reserve_id?>">
                         <input type="hidden" name="total_amount" value="<?= $tot_amt?>">
 
                         <!-- Terms & Conditions -->

@@ -180,6 +180,8 @@ document.addEventListener("DOMContentLoaded", function () {
     start.addEventListener('input', calculateDays);
     end.addEventListener('input', calculateDays);
 
+    calculateDays();
+
 
     // para sa automatic na nag rerecomend ng license 
     const lastNameInput = document.getElementById("lastNameInput");
@@ -286,4 +288,21 @@ document.addEventListener("DOMContentLoaded", function () {
             carList.innerHTML = "";
         }
     });
+});
+
+
+// para sa advance deposit mag shoshiw 
+document.addEventListener('DOMContentLoaded', function () {
+    const reserveEl = document.getElementById('reserveId');
+    const box = document.getElementById('advanceDepositBox');
+
+    if (!reserveEl || !box) return;
+    let value = reserveEl.textContent.replace(/[₱,]/g, '').trim();
+    value = parseFloat(value) || 0;
+
+    if (value === 0) {
+        box.style.display = 'none';
+    } else {
+        box.style.display = 'block';
+    }
 });

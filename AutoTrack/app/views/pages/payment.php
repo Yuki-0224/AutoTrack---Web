@@ -472,6 +472,7 @@
 
             if ($car):
                 $estimatedTotal = $_GET['total'] ?? ($car['price_per_day'] * 3 * 1.10);
+                $advance_depo =  segment(4);
             ?>
             <!-- Page Header -->
             <div class="page-header">
@@ -517,12 +518,13 @@
                             <div class="summary-label">Tax (10%)</div>
                             <div class="summary-value">₱<?= number_format($car['price_per_day'] * 3 * 0.10, 2) ?></div>
                         </div>
+                        
                     </div>
 
                     <div class="summary-total">
                         <div class="total-row">
                             <span>Total Amount:</span>
-                            <span class="total-amount">₱<?= number_format($estimatedTotal, 2) ?></span>
+                            <span class="total-amount">₱<?= $advance_depo?></span>
                         </div>
                     </div>
 
