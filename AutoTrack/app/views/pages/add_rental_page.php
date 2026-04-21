@@ -160,7 +160,7 @@
                     <textarea name="car_condition" placeholder="Enter car condition"></textarea>
                   
                 </div>
-                
+                    
                   <input for="" type="hidden" name="reservation_id" value="<?= isset($reserve_car['reservation_id']) ? htmlspecialchars(esc($reserve_car['reservation_id'])) : '' ?>">
                 
 

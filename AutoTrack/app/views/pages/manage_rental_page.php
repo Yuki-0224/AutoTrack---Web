@@ -26,11 +26,11 @@
 
 
     $rent_car = db()->table('rentals')
-             ->select('customers.driver_license as driver_license, customers.first_name, customers.last_name, customers.email, customers.phone, cars.car_name, cars.brand, cars.car_type, cars.plate_number, rentals.rental_start, rentals.rental_end, rentals.fuel_level_out, rentals.odometer_out, rentals.total_amount')
+             ->select('rentals.rental_id, customers.driver_license as driver_license, customers.first_name, customers.last_name, customers.email, customers.phone, cars.car_name, cars.brand, cars.car_type, cars.plate_number, rentals.rental_start, rentals.rental_end, rentals.fuel_level_out, rentals.odometer_out, rentals.total_amount')
              ->inner_join('customers', 'customers.customer_id = rentals.customer_id')
              ->inner_join('cars', 'cars.car_id = rentals.car_id')
+             ->where('rentals.rental_status', 'Ongoing')
              ->get_all();
-
     ?>
 
     <div class="div-sidenav">
@@ -162,6 +162,7 @@
     </div>
 
     <!-- rental return -->
+
     <div id="rental_return" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.5); overflow-y:auto; padding: 20px 0;">
         <div style="background-color:#fefefe; margin:20px auto; padding:30px; border-radius:12px; width:90%; max-width:600px; box-shadow:0 10px 40px rgba(0,0,0,0.2); max-height:80vh; overflow-y:auto;">
             <!-- <span onclick="closeRentalDetails()" style="color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer; line-height:20px;">&times;</span> -->
@@ -223,12 +224,16 @@
                         <div style="color:#666; font-size:0.9rem;">Total Amount</div>
                         <div style="font-weight:bold; color:#1a1a1a;" id="total_amount_return"></div>
                     </div>
+                    <div style="grid-column:1/-1;" id="div_for_rental_id">
+                        <div style="color:#666; font-size:0.9rem;">Rental id</div>
+                        <div style="font-weight:bold; color:#1a1a1a;" id="rental_id" name="rental_id"></div>
+                    </div>
                 </div>
             </div>
 
             <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
                 <button onclick="closeRentalReturn()" style="flex:1; min-width:150px; padding:12px; background:#ff6b35; color:white; border:none; border-radius:8px; font-weight:600; cursor:pointer; font-size:1rem;">Damage</button>
-                <button><a href=""> Return </a></button>
+                <button onclick="goToReturn()">Return</button>
             </div>
         </div>
     </div>
@@ -244,6 +249,8 @@
 
         function showRentalDetails(rental) {
 
+            document.getElementById('div_for_rental_id').style.display = 'none';
+            
             document.getElementById('driver_license').textContent = rental.driver_license;
             document.getElementById('name').textContent = rental.first_name +  ", " + rental.last_name;
             document.getElementById('email').textContent = rental.email;
@@ -257,6 +264,7 @@
             document.getElementById('fuel_level_out').textContent = rental.fuel_level_out;
             document.getElementById('odometer_out').textContent = rental.odometer_out;
             document.getElementById('total_amount').textContent = rental.total_amount;
+            document.getElementById('rental_id').textContent = rental.rental_id;
             
 
             document.getElementById('rental_details').style.display = 'block';
@@ -271,6 +279,8 @@
         // return button
         function showRentalReturn(rental) {
 
+            document.getElementById('div_for_rental_id').style.display = 'none';
+
             document.getElementById('driver_license_return').textContent = rental.driver_license;
             document.getElementById('name_return').textContent = rental.first_name +  ", " + rental.last_name;
             document.getElementById('email_return').textContent = rental.email;
@@ -284,6 +294,7 @@
             document.getElementById('fuel_level_out_return').textContent = rental.fuel_level_out;
             document.getElementById('odometer_out_return').textContent = rental.odometer_out;
             document.getElementById('total_amount_return').textContent = rental.total_amount;
+            document.getElementById('rental_id').textContent = rental.rental_id;
             
 
             document.getElementById('rental_return').style.display = 'block';
@@ -292,6 +303,18 @@
         function closeRentalReturn() {
             document.getElementById('rental_return').style.display = 'none';
             currentReservation = null;
+        }
+
+        // makuha yung id ng rental then display in url
+        function goToReturn() {
+            const rentalId = document.getElementById('rental_id').textContent.trim();
+
+            if (!rentalId) {
+                alert("No rental ID found");
+                return;
+            }
+
+            window.location.href = "/return_rental/" + rentalId;
         }
     </script>
 

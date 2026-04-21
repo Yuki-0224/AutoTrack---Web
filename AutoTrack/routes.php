@@ -264,50 +264,9 @@ $router->post('process-payment', function () {
             exit;
         }
 
-        // Check if rental already exists for this reservation
-        $existingRental = db()->table('rentals')
-            ->where('reservation_id', '=', $reservation_id)
-            ->get();
 
-        $rentalId = null;
-        
-        if ($existingRental) {
-            // Rental exists, use it
-            $rentalId = $existingRental['rental_id'];
-        } else {
-            // Create new rental record
-            $rentalId = db()->table('rentals')->insert([
-                'customer_id' => $reservation['customer_id'],
-                'car_id' => $car_id,
-                'reservation_id' => $reservation_id,
-                'rental_start' => $reservation['pickup_date'],
-                'rental_end' => $reservation['return_date'],
-                'rental_status' => 'Pending'
-            ]);
-        }
-
-        // Check if payment already exists for this rental
-        $existingPayment = db()->table('payments')
-            ->where('rental_id', '=', $rentalId)
-            ->get();
-
-        if ($existingPayment) {
-            // Update existing payment - add the new amount to the existing amount
-            $newAmount = floatval($existingPayment['amount']) + $payment_amount;
-            $newPaidAmount = floatval($existingPayment['paid_amount']) + $payment_amount;
-            
-            db()->table('payments')
-                ->where('payment_id', '=', $existingPayment['payment_id'])
-                ->update([
-                    'amount' => $newAmount,
-                    'paid_amount' => $newPaidAmount,
-                    'payment_method' => $payment_method,
-                    'payment_status' => ($newAmount >= $total_amount) ? 'Fully Paid' : 'Partial Payment',
-                    'payment_date' => date('Y-m-d')
-                ]);
-        } else {
-            // Create new payment record
-            db()->table('payments')->insert([
+        if ($reservation) {
+             db()->table('payments')->insert([
                 'rental_id' => $rentalId,
                 'amount' => $payment_amount,
                 'paid_amount' => $payment_amount,
@@ -316,27 +275,7 @@ $router->post('process-payment', function () {
                 'payment_status' => ($payment_amount >= $total_amount) ? 'Fully Paid' : 'Partial Payment',
                 'reservation_id' => $reservation_id
             ]);
-        }
-
-        // Get total paid amount to check reservation status
-        $totalPaid = db()->raw("SELECT SUM(COALESCE(paid_amount, 0)) as total FROM payments WHERE rental_id = ?", [$rentalId]);
-        $totalPaidRow = $totalPaid->fetch(PDO::FETCH_ASSOC);
-        $totalPaidAmount = floatval($totalPaidRow['total'] ?? 0);
-        $isFullPayment = ($totalPaidAmount >= $total_amount);
-
-        // Update reservation status
-        db()->table('reservations')
-            ->where('reservation_id', '=', $reservation_id)
-            ->update([
-                'reservation_status' => $isFullPayment ? 'Confirmed' : 'Pending'
-            ]);
-
-        // Update rental status
-        if ($isFullPayment) {
-            db()->table('rentals')
-                ->where('rental_id', '=', $rentalId)
-                ->update(['rental_status' => 'Active']);
-        }
+        } 
 
         set_flash('success', 'Payment processed successfully! ' . ($isFullPayment ? 'Full payment received.' : 'Down payment received. Balance due: ₱' . number_format($total_amount - $totalPaidAmount, 2)));
         header('Location: ' . url('dashboard'));
@@ -634,7 +573,7 @@ $router->post('process-payment-rent', function () {
             ->where('rental_id', '=', $rent_id)
             ->get();
 
-        if($rental_id && $reservation_id){
+        if($reservation_id){
             db()->table('rentals')
                 ->where('rental_id', '=', $rental_id['rental_id'])
                 ->update([
@@ -654,7 +593,7 @@ $router->post('process-payment-rent', function () {
                     'payment_date' => date('Y-m-d'),
             ]);
         }  
-        else if ($rental_id) {
+        else if ($rental_id && $reservation_id == 0) {
         
             db()->table('rentals')
                 ->where('rental_id', '=', $rental_id['rental_id'])
@@ -685,3 +624,69 @@ $router->post('process-payment-rent', function () {
 $router->get('manage_reservation', 'app/views/pages/manage_reservation_page');
 
 $router->get('add_new_rental/{reservation_id}', 'app/views/pages/add_rental_page');
+
+
+$router->get('return_rental/{id}', function ($id) {
+    require 'app/views/pages/return_rental_page.php';
+});
+
+$router->post('process-rental-return/{id}', function ($id) {
+    
+    $fuel = $_POST['fuel'];
+    $odometer = $_POST['odometer'];
+    $actual_date = $_POST['actual_date'];
+    $description = $_POST['description'];
+
+
+    db()->table('rentals')
+        ->where('rental_id', $id)
+        ->update([
+            'fuel_level_in' => $fuel,
+            'odometer_in' => $odometer,
+            'actual_return' => $actual_date,
+            'car_condition_in' => $description,
+            'rental_status' => 'Returned'
+        ]);
+
+    $car_id = $_POST['car_id'];
+
+    db()->table('cars')
+        ->where('car_id', $car_id)
+        ->update(['status' => 'Available']);
+
+    set_flash('success', 'Payment processed successfully! ');
+    header('Location: ' . url('manage_rental'));
+
+});
+
+
+$router->post('process-rental-extra-pay/{id}', function ($id) {
+
+    $actual_returns = $_POST['actual_return'] ?? date("Y-m-d H:i:s");
+    $extra_charges  = $_POST['extra_charges'] ?? 0;
+    $fuel           = $_POST['fuel2'] ?? '';
+    $odometer2      = $_POST['odometer2'] ?? '';
+    $description    = $_POST['desc2'] ?? '';
+    $car_id         = $_POST['car_id'] ?? null;
+
+
+    db()->table('rentals')
+        ->where('rental_id', $id)
+        ->update([
+            'extra_charges' => $extra_charges,
+            'fuel_level_in' => $fuel,
+            'odometer_in' => $odometer2,
+            'actual_return' => $actual_returns,
+            'car_condition_in' => $description,
+            'rental_status' => 'Returned'
+        ]);
+
+    if ($car_id) {
+        db()->table('cars')
+            ->where('car_id', $car_id)
+            ->update(['status' => 'Available']);
+    }
+
+    set_flash('success', 'Payment processed successfully!');
+    header('Location: ' . url('manage_rental'));
+});
