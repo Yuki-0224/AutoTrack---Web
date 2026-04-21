@@ -451,7 +451,7 @@
             document.getElementById('extra_pay').style.display = 'block';
             document.getElementById('date_return').textContent = data.rental_end;
 
-            document.getElementById("actual_return").value =  returnDate;
+            document.getElementById("actual_return").value =  returnDate.toISOString().slice(0, 19).replace("T", " ");;
 
             document.getElementById('days').textContent = days;
             document.getElementById('price_per_day').textContent = price_per_day;
